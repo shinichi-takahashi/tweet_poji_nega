@@ -26,11 +26,19 @@ $json = $twObj->OAuthRequest(
     'GET',
     $options
 );
-
 $jset = json_decode($json, true);
+
+$fp = fopen('./twitter.tcv', 'a+');
 foreach ($jset['statuses'] as $result){
     $content = $result['text'];
-
-    echo $content . '<br>';
+    $id = $result['id_str'];
+    if (preg_match('/(https?(:\/\/[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#]+))/', $content, $match)) {
+        $url = $match[1];
+        $uncompress = json_decode(file_get_contents('http://api.hitonobetsu.com/surl/open?url=' . urlencode($url)));
+        $row = $uncompress->original . "\t" . $content . "\t" . $id . "\n";
+        fwrite($fp, $row);
+    }
 }
+fclose($fp);
+echo 'finish';
 ?>
